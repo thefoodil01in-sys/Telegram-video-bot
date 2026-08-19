@@ -2,3 +2,4 @@ python-telegram-bot
 moviepy
 Pillow
 imageio-ffmpeg
+replicate
