@@ -3,3 +3,4 @@ moviepy
 Pillow
 imageio-ffmpeg
 replicate
+requests
