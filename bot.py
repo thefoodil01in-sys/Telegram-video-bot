@@ -63,14 +63,35 @@ async def handle_message(
     if not update.message or not update.message.text:
         return
 
-    text = update.message.text
+    text = update.message.text.strip()
+
+    if len(text) < 20:
+        await update.message.reply_text(
+            "⚠️ Script thodi badi bhejiye."
+        )
+        return
+
     length = len(text)
 
     await update.message.reply_text(
         "📄 Script mil gayi!\n\n"
         f"📝 Script length: {length} characters\n\n"
-        "🎬 Animation processing ke liye ready."
+        "🎬 Animation banane ki taiyari ho rahi hai..."
     )
+
+    try:
+        with open("latest_script.txt", "w", encoding="utf-8") as f:
+            f.write(text)
+
+        await update.message.reply_text(
+            "✅ Script successfully save ho gayi!\n\n"
+            "🎬 Ab animation processing start hogi."
+        )
+
+    except Exception as e:
+        await update.message.reply_text(
+            f"❌ Script save nahi ho payi:\n{e}"
+        )
 
 
 def main():
