@@ -1,5 +1,7 @@
 import os
 import logging
+import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from telegram import Update
 from telegram.ext import (
@@ -12,10 +14,35 @@ from telegram.ext import (
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    level=logging.INFO,
+    level=logging.INFO
 )
 
 TOKEN = os.environ.get("BOT_TOKEN")
+
+
+# Render Web Service ke liye simple HTTP server
+class HealthHandler(BaseHTTPRequestHandler):
+
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain")
+        self.end_headers()
+        self.wfile.write(b"Telegram bot is running!")
+
+    def log_message(self, format, *args):
+        return
+
+
+def start_web_server():
+    port = int(os.environ.get("PORT", 10000))
+
+    server = ThreadingHTTPServer(
+        ("0.0.0.0", port),
+        HealthHandler
+    )
+
+    print(f"Web server running on port {port}")
+    server.serve_forever()
 
 
 async def start(
@@ -40,21 +67,29 @@ async def handle_message(
     length = len(text)
 
     await update.message.reply_text(
-        "📝 Script mil gayi!\n\n"
-        f"📊 Script length: {length} characters.\n\n"
+        "📄 Script mil gayi!\n\n"
+        f"📝 Script length: {length} characters\n\n"
         "🎬 Animation processing ke liye ready."
     )
 
 
 def main():
+
     if not TOKEN:
         raise ValueError(
             "BOT_TOKEN environment variable missing"
         )
 
+    # Render port server background me start karo
+    web_thread = threading.Thread(
+        target=start_web_server,
+        daemon=True
+    )
+    web_thread.start()
+
+    # Telegram bot
     app = (
-        Application
-        .builder()
+        Application.builder()
         .token(TOKEN)
         .build()
     )
@@ -70,7 +105,7 @@ def main():
         CommandHandler("start", start)
     )
 
-    print("Animation bot is running...")
+    print("Telegram bot is running...")
 
     app.run_polling()
 
